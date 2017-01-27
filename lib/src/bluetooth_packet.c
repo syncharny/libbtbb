@@ -232,13 +232,15 @@ static uint32_t air_to_host32(const char *air_order, const int bits)
 		host_order |= ((uint32_t)air_order[i] << i);
 	return host_order;
 }
-static uint64_t air_to_host64(const char *air_order, const int bits)
+static inline void air_to_host64(uint64_t* host_order, const char *air_order, const int bits)
 {
 	int i;
-	uint64_t host_order = 0;
-	for (i = 0; i < bits; i++)
-		host_order |= ((uint64_t)air_order[i] << i);
-	return host_order;
+  if host_order != 0
+  {
+    *host_order = 0;
+    for (i = 0; i < bits; i++)
+      *host_order |= ((uint64_t)air_order[i] << i);
+  }
 }
 
 ///* Convert some number of bits in a host order integer to an air order array */
@@ -384,7 +386,9 @@ int promiscuous_packet_search(char *stream, int search_length, uint32_t *lap,
 		barker |= (symbols[63] << 6);
 		if (BARKER_DISTANCE[barker] <= MAX_BARKER_ERRORS) {
 			// Error correction
-			syncword = air_to_host64(symbols, 64);
+			//syncword = air_to_host64(symbols, 64);
+      syncword = 0;
+			air_to_host64(&syncword, symbols, 64);
 			
 			/* correct the barker code with a simple comparison */
 			corrected_barker = barker_correct[(uint8_t)(syncword >> 57)];
@@ -429,7 +433,9 @@ int find_known_lap(char *stream, int search_length, uint32_t lap,
 	ac = btbb_gen_syncword(lap);
 	for (count = 0; count < search_length; count++) {
 		symbols = &stream[count];
-		syncword = air_to_host64(symbols, 64);
+    //syncword = air_to_host64(symbols, 64);
+    syncword = 0;
+		air_to_host64(&syncword, symbols, 64);
 		*ac_errors = count_bits(syncword ^ ac);
 
 		if (*ac_errors <= max_ac_errors) {
