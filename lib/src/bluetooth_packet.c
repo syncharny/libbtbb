@@ -235,11 +235,16 @@ static uint32_t air_to_host32(const char *air_order, const int bits)
 static inline void air_to_host64(uint64_t* host_order, const char *air_order, const int bits)
 {
 	int i;
-  if host_order != 0
+  if (host_order != 0)
   {
     *host_order = 0;
     for (i = 0; i < bits; i++)
-      *host_order |= ((uint64_t)air_order[i] << i);
+	{
+	  if(air_order[i] != 0)
+      {
+	    *host_order |= ((uint64_t)air_order[i] << i);
+      }
+	}
   }
 }
 
